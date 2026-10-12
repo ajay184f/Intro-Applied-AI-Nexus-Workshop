@@ -1,0 +1,115 @@
+#!/bin/bash
+# setup.sh - Initial setup script for PostQode Nexus
+
+set -e
+
+echo "🚀 Setting up PostQode Nexus..."
+echo ""
+
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Check prerequisites
+echo "📋 Checking prerequisites..."
+
+command -v docker >/dev/null 2>&1 || { echo "❌ Docker is required but not installed. Aborting." >&2; exit 1; }
+command -v docker-compose >/dev/null 2>&1 || command -v docker >/dev/null 2>&1 || { echo "❌ Docker Compose is required. Aborting." >&2; exit 1; }
+command -v node >/dev/null 2>&1 || { echo "❌ Node.js is required but not installed. Aborting." >&2; exit 1; }
+command -v java >/dev/null 2>&1 || { echo "❌ Java is required but not installed. Aborting." >&2; exit 1; }
+
+echo -e "${GREEN}✅ All prerequisites met${NC}"
+echo ""
+
+# Create .env if not exists
+if [ ! -f ".env" ]; then
+    echo "📝 Creating .env from .env.example..."
+    cp .env.example .env
+    echo -e "${GREEN}✅ .env file created${NC}"
+else
+    echo -e "${YELLOW}⚠️  .env file already exists, skipping${NC}"
+fi
+
+# Install backend dependencies
+echo ""
+echo "📦 Installing backend dependencies..."
+cd backend
+if [ -f "./mvnw" ]; then
+    ./mvnw dependency:go-offline -q
+else
+    echo -e "${YELLOW}⚠️  Maven wrapper not found, using system Maven${NC}"
+    mvn dependency:go-offline -q
+fi
+echo -e "${GREEN}✅ Backend dependencies installed${NC}"
+cd ..
+
+# Install frontend dependencies
+echo ""
+echo "📦 Installing frontend dependencies..."
+cd frontend
+npm ci --silent
+echo -e "${GREEN}✅ Frontend dependencies installed${NC}"
+cd ..
+
+# Install mobile dependencies
+echo ""
+echo "📦 Installing mobile dependencies..."
+cd mobile
+npm ci --silent
+echo -e "${GREEN}✅ Mobile dependencies installed${NC}"
+cd ..
+
+# Start Docker services
+echo ""
+echo "🐳 Starting Docker services..."
+cd docker
+docker-compose up -d
+cd ..
+
+# Wait for database to be ready
+echo ""
+echo "⏳ Waiting for database to be ready..."
+sleep 10
+
+# Run database migrations
+echo ""
+echo "🔄 Running database migrations..."
+cd backend
+if [ -f "./mvnw" ]; then
+    ./mvnw flyway:migrate -q
+else
+    mvn flyway:migrate -q
+fi
+echo -e "${GREEN}✅ Database migrations complete${NC}"
+cd ..
+
+# Seed data is loaded automatically via Flyway V2 migration
+echo ""
+echo "🌱 Demo data loaded via Flyway migrations"
+echo -e "${GREEN}✅ Setup complete - demo users and products ready${NC}"
+
+echo ""
+echo "=========================================="
+echo -e "${GREEN}🎉 Setup complete!${NC}"
+echo "=========================================="
+echo ""
+echo "📌 Next steps:"
+echo "   • Backend:  cd backend && ./mvnw spring-boot:run"
+echo "   • Frontend: cd frontend && npm run dev"
+echo "   • Mobile:   cd mobile && npm start"
+echo ""
+echo "📊 Demo credentials:"
+echo "   • Admin: admin / Admin@123"
+echo "   • User:  user / User@123"
+echo ""
+# Load .env locally to get variables for display
+if [ -f ".env" ]; then
+    export $(grep -v '^#' ".env" | xargs)
+fi
+
+echo "🔗 URLs:"
+echo "   • Backend:  http://localhost:${BACKEND_PORT:-8080}"
+echo "   • Frontend: http://localhost:${FRONTEND_PORT:-3000}"
+echo "   • Database: localhost:${DB_PORT:-5432}"
+echo ""

@@ -1,0 +1,17 @@
+node_modules/
+.expo/
+.expo-export/
+dist/
+web-build/
+
+# Native
+android/
+ios/
+.maestro/
+coverage/
+*.log
+
+# Build outputs
+*.apk
+*.ipa
+*.aab

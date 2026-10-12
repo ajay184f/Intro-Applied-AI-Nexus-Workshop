@@ -1,0 +1,140 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { Toaster } from './components/ui/sonner';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Layout } from './components/Layout';
+import { LoginPage } from './pages/LoginPage';
+import { ProductCatalogPage } from './pages/ProductCatalogPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { CategoriesPage } from './pages/CategoriesPage';
+import { UsersPage } from './pages/UsersPage';
+import { MyOrdersPage } from './pages/MyOrdersPage';
+import { OrderManagementPage } from './pages/OrderManagementPage';
+import { MyInventoryPage } from './pages/MyInventoryPage';
+import { InsightsPage } from './pages/InsightsPage';
+import { CommandCenterPage } from './pages/CommandCenterPage';
+import { MyActivityPage } from './pages/MyActivityPage';
+import { ProductRequestWizardPage } from './pages/ProductRequestWizardPage';
+import { PreferencesPage } from './pages/PreferencesPage';
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="products" element={<ProductCatalogPage />} />
+            <Route
+              path="categories"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <CategoriesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="users"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <UsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="orders"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <OrderManagementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="my-orders"
+              element={
+                <ProtectedRoute>
+                  <MyOrdersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="my-inventory"
+              element={
+                <ProtectedRoute>
+                  <MyInventoryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="insights"
+              element={
+                <ProtectedRoute>
+                  <InsightsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="command-center"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <CommandCenterPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="my-activity"
+              element={
+                <ProtectedRoute>
+                  <MyActivityPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="product-request"
+              element={
+                <ProtectedRoute>
+                  <ProductRequestWizardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="preferences"
+              element={
+                <ProtectedRoute>
+                  <PreferencesPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
+          {/* Catch all */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+
+        {/* Toast Notifications */}
+        <Toaster position="top-right" richColors />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
